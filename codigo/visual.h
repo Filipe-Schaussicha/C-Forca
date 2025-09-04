@@ -21,4 +21,4 @@ float centro_x_texto(char *texto, int centro, int tamanho_fonte, Font fonte);
 
 char teclado(int *tela, Font fonte, char *tentativas);
 
-int fim_jogo(char *palavra, Font fonte, Texture2D forca, bool acertou_tudo);
+int fim_jogo(char *palavra, Font fonte, Texture2D *forca, bool acertou_tudo);

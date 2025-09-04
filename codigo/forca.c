@@ -18,7 +18,7 @@ int main(){
 
     char *palavra = NULL;
 
-    // Carrega imagem de fundo
+    // Carrega imagem de fundo e da forca
     Texture2D quadro = LoadTexture("imagens/quadro.jpg");
 
     Texture2D forca = LoadTexture("imagens/forca_0.png");
@@ -35,7 +35,7 @@ int main(){
         // Desenha tela de fundo
         DrawTextureEx(quadro, (Vector2){0,0}, 0.0, (float)SW / quadro.width, WHITE);
 
-        // Para Testes
+        // Para Debug
         if(mostrar_grades){
             for(int i = 0; i < SW; i += SW * 0.1){
                 DrawRectangle(i, 0, SW * 0.005, SH, BLUE);
@@ -61,6 +61,7 @@ int main(){
         EndDrawing();
     }
 
+    free(palavra);
     UnloadFont(fonte);
     UnloadTexture(quadro);
     UnloadTexture(forca);

@@ -20,13 +20,15 @@ int jogo(char *string, Font fonte, Texture2D *forca, int tela){
 
     static char tentativas[100] = "\n -";
     
+    // Letra do teclado
     static char letra = '\0';
 
     static char mensagem[1000] = "";
     static Color cor_mensagem = GREEN;
 
-    bool tudo_achado;
+    static bool tudo_achado;
 
+    // Vai para as telas de teclado e de fim_jogo se selecionadas
     if(tela == TECLADO){
         letra = teclado(&tela, fonte, tentativas);
         printf("%c\n", letra);
@@ -34,7 +36,7 @@ int jogo(char *string, Font fonte, Texture2D *forca, int tela){
     }
 
     if(tela == FIM_JOGO){
-        return fim_jogo(string, fonte, *forca, tudo_achado);
+        return fim_jogo(string, fonte, forca, tudo_achado);
     }
 
     // Desenha a forca
@@ -43,6 +45,7 @@ int jogo(char *string, Font fonte, Texture2D *forca, int tela){
     // Deixa as palavras desconhecidas como _ e mostra as achadas
     char *impressao = palavra_impressao(string, tentativas, &tudo_achado);
 
+    // Verificação de erros
     if(string == NULL || impressao == NULL){
         return MENU;
     }
@@ -66,10 +69,12 @@ int jogo(char *string, Font fonte, Texture2D *forca, int tela){
     // Desenha as tentativas anteriores
     DrawTextEx(fonte, &tentativas[3], (Vector2){coluna * 3.5, row * 3}, 65, 20, YELLOW);
 
+    // Botão para ir a tela teclado
     if(botao((Rectangle){coluna * 7.75, row * 0.25, coluna * 2, row * 1.50}, 0.1, "Teclado", COR_BORDA_BOTAO, COR_BOTAO, COR_TEXTO_BOTAO, fonte) || tela == TECLADO){
         tela = TECLADO;
     }
 
+    // Botão para resetar o jogo
     if(botao((Rectangle){coluna * 0.25, row * 0.25, coluna * 2, row * 1.50}, 0.1, "Resetar", COR_BORDA_BOTAO, COR_BOTAO, COR_TEXTO_BOTAO, fonte)){
         tela = MENU;
         erros = 0; 
@@ -81,8 +86,10 @@ int jogo(char *string, Font fonte, Texture2D *forca, int tela){
         sprintf(mensagem, "");
     }
 
+    // Libera a string impressão
     free(impressao);
 
+    // Verifica se alguma letra foi escolhida no teclado
     if(letra != '\0'){
 
         if(letra_esta_string(&tentativas[3], letra)){
@@ -114,22 +121,22 @@ int jogo(char *string, Font fonte, Texture2D *forca, int tela){
         letra = '\0';
     }
 
+    // Escreve a mensagem na tela
     DrawTextEx(fonte, mensagem, (Vector2){centro_x_texto(mensagem, coluna * 6, 100, fonte), row * 5}, 100, 0.2, cor_mensagem);
 
+    // Verifica se o jogo já acabou
     if(tudo_achado || erros >= 6){
         erros = 0; 
         sprintf(tentativas, "\n -");
         sprintf(mensagem, "");
         tela = FIM_JOGO;
-
-        UnloadTexture(*forca);
-        *forca = LoadTexture("imagens/forca_0.png");
     }
 
+    // Retorna a próxima tela
     return tela;
 }
 
-int fim_jogo(char *palavra, Font fonte, Texture2D forca, bool acertou_tudo){
+int fim_jogo(char *palavra, Font fonte, Texture2D *forca, bool acertou_tudo){
 
     // Variáveis de referência para ajudar no possicionamento
     float coluna = SW * 0.1;
@@ -138,12 +145,15 @@ int fim_jogo(char *palavra, Font fonte, Texture2D forca, bool acertou_tudo){
     char mensagem[1000] = "";
     Color cor_mensagem;
 
+    // Caso sair, reseta o desenho fa forca
     if(botao((Rectangle){coluna * 0.25, row * 0.25, coluna * 2, row * 1.50}, 0.1, "Resetar", COR_BORDA_BOTAO, COR_BOTAO, COR_TEXTO_BOTAO, fonte)){
+        UnloadTexture(*forca);
+        *forca = LoadTexture("imagens/forca_0.png");
         return MENU;
     }
 
     // Desenha a forca
-    DrawTextureEx(forca, (Vector2){coluna * 1.25 , row * 3}, 0.0, 0.65,  WHITE);
+    DrawTextureEx(*forca, (Vector2){coluna * 1.25 , row * 3}, 0.0, 0.65,  WHITE);
 
     // Quebra palavras grandes em duas linhas
     if((int)MeasureTextEx(fonte, palavra, 100, 15).x > coluna * 5 && letra_esta_string(palavra, ' ')){
@@ -161,6 +171,7 @@ int fim_jogo(char *palavra, Font fonte, Texture2D forca, bool acertou_tudo){
     // Desenha a palavra
     DrawTextEx(fonte, palavra, (Vector2){coluna * 3, row * 6.75}, 100, 15, WHITE);
 
+    // Imprimi a mensagem final
     if(acertou_tudo){
         sprintf(mensagem, "Parabens, voce acertou tudo ;)");
         cor_mensagem = GREEN;
@@ -169,7 +180,7 @@ int fim_jogo(char *palavra, Font fonte, Texture2D forca, bool acertou_tudo){
         cor_mensagem = RED;
     }
 
-    DrawTextEx(fonte, mensagem, (Vector2){centro_x_texto(mensagem, coluna * 6, 100, fonte), row * 3}, 100, 0.2, cor_mensagem);
+    DrawTextEx(fonte, mensagem, (Vector2){centro_x_texto(mensagem, coluna * 6.25, 100, fonte), row * 3.5}, 100, 0.2, cor_mensagem);
 
     return FIM_JOGO;
 
@@ -184,10 +195,12 @@ char teclado(int *tela, Font fonte, char *tentativas){
 
     *tela = TECLADO;
 
+    // Desenha o botão de sair
     if(botao((Rectangle){coluna * 0.25, row * 0.25, coluna * 2, row * 1.50}, 0.1, "Voltar", COR_BORDA_BOTAO, COR_BOTAO, COR_TEXTO_BOTAO, fonte)){
         *tela = FORCA;
     }
 
+    // Desenha o teclado virtual
     char letras_maiusculas[] = {
     'A','B','C','D','E','F','G','H','I','J','K','L','M',
     'N','O','P','Q','R','S','T','U','V','W','X','Y','Z'
@@ -255,7 +268,6 @@ Font carrega_fonte(char *caminho, int tamanho){
     return LoadFontEx(caminho, tamanho, chars, charCount);
 }
 
-
 int menu(Font fonte, char **string){
 
     int dificuldade = 0;
@@ -264,9 +276,6 @@ int menu(Font fonte, char **string){
     float coluna = SW * 0.1;
     float row = SH * 0.1;
     float margin = row * 0.1;
-
-    //DrawRectangle(SW / 2, SH / 2, 200, 100, (Color){255,255,255, 50});
-    //DrawRectangle(SW / 2 + 25, SH / 2 + 25, 150, 50, (Color){255,255,255, 50});
 
     // Escrita dos títulos
     DrawTextEx(fonte, "Bem-vindo ao C-Forca!", (Vector2){centro_x_texto("Bem-vindo ao C-Forca!", SW / 2, 128, fonte), row * 2.5 + margin}, 128 , 2 ,WHITE);

@@ -20,7 +20,7 @@ char *escolher_palavra_aleatoria(int dificuldade){
     }
 
     // Conta quantas palavras há no arquivo
-    int contador = 1;
+    int contador = 0;
     char buffer[1000];
     
     while(fgets(buffer, sizeof(buffer), arquivo) != NULL){
@@ -28,6 +28,11 @@ char *escolher_palavra_aleatoria(int dificuldade){
     }
 
     fclose(arquivo);
+
+    if (contador == 0) {
+        printf("Arquivo vazio!\n");
+        return NULL;
+    }
 
     // Abre o arquivo novamente
     arquivo = fopen(caminho, "r");
@@ -37,25 +42,28 @@ char *escolher_palavra_aleatoria(int dificuldade){
         return NULL;
     }
 
-    char *palavra_aleatoria = malloc(sizeof(char) * 100);
-
-    // Escolhe uma palavra em aleatório
     int qual_palavra = rand() % contador;
-
-    for(int i = 0; i < qual_palavra; i++){
-        fgets(palavra_aleatoria, 100, arquivo);
+    for (int i = 0; i <= qual_palavra; i++) {
+        if (fgets(buffer, sizeof(buffer), arquivo) == NULL) {
+            fclose(arquivo);
+            return NULL; // erro na leitura
+        }
     }
-
-    // Remove o \n
-    if(palavra_aleatoria[strlen(palavra_aleatoria) - 1] == '\n'){
-        palavra_aleatoria[strlen(palavra_aleatoria) - 1] = '\0';
-    }
-
     fclose(arquivo);
+
+    // Aloca e copia a palavra escolhida
+    buffer[strcspn(buffer, "\n")] = '\0'; // remove '\n'
+    char *palavra_aleatoria = malloc(strlen(buffer) + 1);
+    if (palavra_aleatoria == NULL) {
+        printf("Erro ao alocar memória\n");
+        return NULL;
+    }
+    strcpy(palavra_aleatoria, buffer);
 
     return palavra_aleatoria;
 }
 
+// Adiciona um caractere ao final de uma string
 void add_string(char *string, char c){
 
     int tamanho = strlen(string);
@@ -65,6 +73,7 @@ void add_string(char *string, char c){
 
 }
 
+// Verifica se um caractere está na string
 bool letra_esta_string(char *string, char letra){
 
     int tamanho = strlen(string);
@@ -80,6 +89,7 @@ bool letra_esta_string(char *string, char letra){
     return false;
 }
 
+// Criar a string que deve aparecer no jogo
 char *palavra_impressao(char *string, char *achadas, bool *tudo_achado){
 
     *tudo_achado = true;
@@ -100,6 +110,7 @@ char *palavra_impressao(char *string, char *achadas, bool *tudo_achado){
 
     impressao[0] = '\0';
 
+    // Verifica se cada caractere foi ou não achado antes
     for(int i = 0; i < len; i++){
 
         if(letra_esta_string(achadas, string[i])){
@@ -112,5 +123,4 @@ char *palavra_impressao(char *string, char *achadas, bool *tudo_achado){
     }
 
     return impressao;
-
 }
