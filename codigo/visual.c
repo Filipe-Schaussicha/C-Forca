@@ -1,41 +1,9 @@
 #include <math.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
 #include "raylib.h"
+#include "logica.h"
+#include "visual.h"
 
-#define SW 1366
-#define SH 768
-
-// Telas do jogo
-typedef enum telas {
-    MENU, 
-    FORCA,
-    TECLADO,
-    FIM_JOGO
-}telas;
-
-// Variáveis globais
-telas tela_atual = MENU;
-bool mostrar_grades = false;
-char palavra[1000] = "";
-
-int menu(Font fonte);
-bool botao(Rectangle retangulo_maior, float porsentagem_retangulo_menor, char *texto, Color externo, Color interno, Color texto_cor, Font fonte);
-void escolher_palavra_aleatoria(int dificuldade);
-float centro_x_texto(char *texto, int centro, int tamanho_fonte, Font fonte);
-
-int main(){
-
-    InitWindow(SW, SH, "Forca");
-
-    SetTargetFPS(60);
-
-    srand(time(NULL));
-
-    // Carrega imagem de fundo
-    Texture2D quadro = LoadTexture("imagens/quadro.jpg");
+Font carrega_fonte(char *caminho, int tamanho){
 
     // Carrega todas as letras possíveis da fonte
     int chars[] = {
@@ -61,46 +29,11 @@ int main(){
     };
     int charCount = sizeof(chars)/sizeof(chars[0]);
 
-    // Carrega a fonte customizada
-    Font fonte = LoadFontEx("fontes/Chalk_Board.ttf", 96, chars, charCount);
-
-    // Loop principal
-    while(!WindowShouldClose()){
-
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
-
-        // Desenha tela de fundo
-        DrawTextureEx(quadro, (Vector2){0,0}, 0.0, (float)SW / quadro.width, WHITE);
-
-        // Para Testes
-        if(mostrar_grades){
-            for(int i = 0; i < SW; i += SW * 0.1){
-                DrawRectangle(i, 0, SW * 0.005, SH, BLUE);
-            }
-
-            for(int i = 0; i < SH; i += SH * 0.1){
-                DrawRectangle(0, i, SW, SH * 0.005, RED);
-            }
-        }
-        
-        // Selecão de telas
-        switch(tela_atual){
-
-            default:
-                menu(fonte);
-                break;
-        }
-
-        EndDrawing();
-    }
-
-    UnloadFont(fonte);
-    UnloadTexture(quadro);
-    CloseWindow();
+    return LoadFontEx(caminho, tamanho, chars, charCount);
 }
 
-int menu(Font fonte){
+
+int menu(Font fonte, char* palavra){
 
     int dificuldade = 0;
 
@@ -128,65 +61,15 @@ int menu(Font fonte){
         dificuldade = 3;
     }
 
-    // Para debug
-    DrawTextEx(fonte, palavra, (Vector2){centro_x_texto(palavra, SW / 2, 96, fonte), row * 8 + margin}, 96 , 2 ,WHITE);
-
     // Chama a função para escolher a dificuldade e vai para o jogo
     if(dificuldade > 0){
-        escolher_palavra_aleatoria(dificuldade);
+        palavra = escolher_palavra_aleatoria(dificuldade);
         return FORCA;
     }
 
     return MENU;
 }
 
-// Escolhe uma palavra aleatória de um arquivo
-void escolher_palavra_aleatoria(int dificuldade){
-    
-    // Abre o arquivo
-    char caminho[100];
-    sprintf(caminho, "lista_palavras/dificuldade_%d.txt", dificuldade);
-
-    FILE *arquivo = fopen(caminho, "r");
-
-    // Verifica por erros
-    if(arquivo == NULL){
-        printf("Erro ao abrir o arquivo!\n");
-        return;
-    }
-
-    // Conta quantas palavras há no arquivo
-    int contador = 1;
-    char buffer[1000];
-    
-    while(fgets(buffer, sizeof(buffer), arquivo) != NULL){
-        contador++;
-    }
-
-    fclose(arquivo);
-
-    // Abre o arquivo novamente
-    arquivo = fopen(caminho, "r");
-
-    if(arquivo == NULL){
-        printf("Erro ao abrir o arquivo_2!\n");
-        return;
-    }
-
-    // Escolhe uma palavra em aleatório
-    int qual_palavra = rand() % contador;
-
-    for(int i = 0; i < qual_palavra; i++){
-        fgets(palavra, sizeof(palavra), arquivo);
-    }
-
-    // Remove o \n
-    if(palavra[strlen(palavra) - 1] == '\n'){
-        palavra[strlen(palavra) - 1] = '\0';
-    }
-
-    fclose(arquivo);
-}
 
 // Cria um botão e verifica se foi clicado
 bool botao(Rectangle retangulo, float margin, char *texto, Color externo, Color interno, Color texto_cor, Font fonte){
