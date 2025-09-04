@@ -53,9 +53,13 @@ int jogo(char *string, Font fonte, Texture2D forca){
 
     free(impressao);
 
-    //if(botao()){
-    //    return TECLADO;
-    //}
+    if(botao((Rectangle){coluna * 7.75, row * 0.25, coluna * 2, row * 1.50}, 0.1, "Teclado", COR_BORDA_BOTAO, COR_BOTAO, COR_TEXTO_BOTAO, fonte)){
+        return TECLADO;
+    }
+
+    if(botao((Rectangle){coluna * 0.25, row * 0.25, coluna * 2, row * 1.50}, 0.1, "Resetar", COR_BORDA_BOTAO, COR_BOTAO, COR_TEXTO_BOTAO, fonte)){
+        return MENU;
+    }
 
     return FORCA;
 }

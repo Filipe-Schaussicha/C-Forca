@@ -6,7 +6,7 @@
 
 // Variáveis globais
 telas tela_atual = MENU;
-bool mostrar_grades = true;
+bool mostrar_grades = false;
 
 int main(){
 
