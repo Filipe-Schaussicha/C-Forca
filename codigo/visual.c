@@ -6,11 +6,13 @@
 #include "logica.h"
 #include "visual.h"
 
-#define COR_BORDA_BOTAO BLACK
-#define COR_BOTAO BLUE
-#define COR_TEXTO_BOTAO WHITE
+#define COR_BORDA_BOTAO (Color){30, 30, 30, 255} 
+#define COR_BOTAO (Color){70, 130, 180, 255}
+#define COR_TEXTO_BOTAO (Color){245, 245, 245, 255}
 
 int jogo(char *string, Font fonte, Texture2D *forca, int tela){
+
+    static int tamanho_fonte = 100;
 
     // Variáveis de referência para ajudar no possicionamento
     float coluna = SW * 0.1;
@@ -18,8 +20,8 @@ int jogo(char *string, Font fonte, Texture2D *forca, int tela){
 
     static int erros = 0;
 
-    static char tentativas[100] = "\n -";
-    
+    static char tentativas[1000] = "\n!\"#$%&'()*+,-./:;<=>?@ [\\]^_`{|}~";
+
     // Letra do teclado
     static char letra = '\0';
 
@@ -50,24 +52,30 @@ int jogo(char *string, Font fonte, Texture2D *forca, int tela){
         return MENU;
     }
 
-    // Quebra palavras grandes em duas linhas
-    if((int)MeasureTextEx(fonte, impressao, 100, 15).x > coluna * 5 && letra_esta_string(impressao, ' ')){
+    // Quebra palavras grandes em duas linhas ou diminui o texto
+    if((int)MeasureTextEx(fonte, impressao, tamanho_fonte, 15).x > coluna * 5){
 
-        int len = strlen(impressao);
+        if(letra_esta_string(impressao, ' ')){
+            int len = strlen(impressao);
 
-        for(int i = 0; i < len; i++){
-            if(impressao[i] == ' '){
-                impressao[i] = '\n';
-                break;
+            for(int i = 0; i < len; i++){
+                if(impressao[i] == ' '){
+                    impressao[i] = '\n';
+                    break;
+                }
+            }
+        }else{
+            while((int)MeasureTextEx(fonte, impressao, tamanho_fonte, 15).x > coluna * 5){
+                tamanho_fonte--;
             }
         }
     } 
 
     // Desenha a palavra
-    DrawTextEx(fonte, impressao, (Vector2){coluna * 3, row * 6.75}, 100, 15, WHITE);
+    DrawTextEx(fonte, impressao, (Vector2){coluna * 3, row * 6.75}, tamanho_fonte, 15, WHITE);
 
     // Desenha as tentativas anteriores
-    DrawTextEx(fonte, &tentativas[3], (Vector2){coluna * 3.5, row * 3}, 65, 20, YELLOW);
+    DrawTextEx(fonte, &tentativas[34], (Vector2){coluna * 3.5, row * 3}, 65, 20, YELLOW);
 
     // Botão para ir a tela teclado
     if(botao((Rectangle){coluna * 7.75, row * 0.25, coluna * 2, row * 1.50}, 0.1, "Teclado", COR_BORDA_BOTAO, COR_BOTAO, COR_TEXTO_BOTAO, fonte) || tela == TECLADO){
@@ -82,8 +90,9 @@ int jogo(char *string, Font fonte, Texture2D *forca, int tela){
         UnloadTexture(*forca);
         *forca = LoadTexture("imagens/forca_0.png");
 
-        sprintf(tentativas, "\n -");
+        sprintf(tentativas, "\n!\"#$%&'()*+,-./:;<=>?@ [\\]^_`{|}~");
         sprintf(mensagem, "");
+        tamanho_fonte = 100;
     }
 
     // Libera a string impressão
@@ -92,7 +101,7 @@ int jogo(char *string, Font fonte, Texture2D *forca, int tela){
     // Verifica se alguma letra foi escolhida no teclado
     if(letra != '\0'){
 
-        if(letra_esta_string(&tentativas[3], letra)){
+        if(letra_esta_string(&tentativas[34], letra)){
 
             sprintf(mensagem, "Voce ja fez essa tentaiva antes :|");
             cor_mensagem = YELLOW;
@@ -127,9 +136,10 @@ int jogo(char *string, Font fonte, Texture2D *forca, int tela){
     // Verifica se o jogo já acabou
     if(tudo_achado || erros >= 6){
         erros = 0; 
-        sprintf(tentativas, "\n -");
+        sprintf(tentativas,  "\n!\"#$%&'()*+,-./:;<=>?@ [\\]^_`{|}~");
         sprintf(mensagem, "");
         tela = FIM_JOGO;
+        tamanho_fonte = 100;
     }
 
     // Retorna a próxima tela
@@ -137,6 +147,8 @@ int jogo(char *string, Font fonte, Texture2D *forca, int tela){
 }
 
 int fim_jogo(char *palavra, Font fonte, Texture2D *forca, bool acertou_tudo){
+
+    int tamanho_fonte = 100;
 
     // Variáveis de referência para ajudar no possicionamento
     float coluna = SW * 0.1;
@@ -155,15 +167,21 @@ int fim_jogo(char *palavra, Font fonte, Texture2D *forca, bool acertou_tudo){
     // Desenha a forca
     DrawTextureEx(*forca, (Vector2){coluna * 1.25 , row * 3}, 0.0, 0.65,  WHITE);
 
-    // Quebra palavras grandes em duas linhas
-    if((int)MeasureTextEx(fonte, palavra, 100, 15).x > coluna * 5 && letra_esta_string(palavra, ' ')){
+    // Quebra palavras grandes em duas linhas ou diminui o texto
+    if((int)MeasureTextEx(fonte, palavra, tamanho_fonte, 15).x > coluna * 5){
 
-        int len = strlen(palavra);
+        if(letra_esta_string(palavra, ' ')){
+            int len = strlen(palavra);
 
-        for(int i = 0; i < len; i++){
-            if(palavra[i] == ' '){
-                palavra[i] = '\n';
-                break;
+            for(int i = 0; i < len; i++){
+                if(palavra[i] == ' '){
+                    palavra[i] = '\n';
+                    break;
+                }
+            }
+        }else{
+            while((int)MeasureTextEx(fonte, palavra, tamanho_fonte, 15).x > coluna * 5){
+                tamanho_fonte--;
             }
         }
     } 
@@ -222,7 +240,7 @@ char teclado(int *tela, Font fonte, char *tentativas){
 
         Color cor_fundo;
         if(letra_esta_string(tentativas, letras_maiusculas[i])){
-            cor_fundo = GRAY;
+            cor_fundo = (Color){180, 180, 180, 255};
         }else{
             cor_fundo = COR_BOTAO;
         }
