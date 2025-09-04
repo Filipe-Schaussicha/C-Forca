@@ -80,7 +80,9 @@ bool letra_esta_string(char *string, char letra){
     return false;
 }
 
-char *palavra_impressao(char *string, char *achadas){
+char *palavra_impressao(char *string, char *achadas, bool *tudo_achado){
+
+    *tudo_achado = true;
 
     if(string == NULL){
         printf("Palavra Nula\n");
@@ -103,6 +105,7 @@ char *palavra_impressao(char *string, char *achadas){
         if(letra_esta_string(achadas, string[i])){
             add_string(impressao, string[i]);
         }else{
+            *tudo_achado = false;
             add_string(impressao, '_');
         }
 

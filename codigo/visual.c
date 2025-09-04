@@ -7,24 +7,41 @@
 #include "visual.h"
 
 #define COR_BORDA_BOTAO BLACK
-#define COR_BOTAO   BLUE
+#define COR_BOTAO BLUE
 #define COR_TEXTO_BOTAO WHITE
 
-int jogo(char *string, Font fonte, Texture2D forca){
+int jogo(char *string, Font fonte, Texture2D *forca, int tela){
 
     // Variáveis de referência para ajudar no possicionamento
     float coluna = SW * 0.1;
     float row = SH * 0.1;
 
+    static int erros = 0;
+
+    static char tentativas[100] = "\n -";
+    
+    static char letra = '\0';
+
+    static char mensagem[1000] = "";
+    static Color cor_mensagem = GREEN;
+
+    bool tudo_achado;
+
+    if(tela == TECLADO){
+        letra = teclado(&tela, fonte, tentativas);
+        printf("%c\n", letra);
+        return tela;
+    }
+
+    if(tela == FIM_JOGO){
+        return fim_jogo(string, fonte, *forca, tudo_achado);
+    }
+
     // Desenha a forca
-    DrawTextureEx(forca, (Vector2){coluna * 1.25 , row * 3}, 0.0, 0.65,  WHITE);
-
-    int erros = 0;
-
-    static char tentativas[100] = "\n -AEIOU";
+    DrawTextureEx(*forca, (Vector2){coluna * 1.25 , row * 3}, 0.0, 0.65,  WHITE);
 
     // Deixa as palavras desconhecidas como _ e mostra as achadas
-    char *impressao = palavra_impressao(string, tentativas);
+    char *impressao = palavra_impressao(string, tentativas, &tudo_achado);
 
     if(string == NULL || impressao == NULL){
         return MENU;
@@ -41,9 +58,7 @@ int jogo(char *string, Font fonte, Texture2D forca){
                 break;
             }
         }
-    }
-
-    //printf("%s\n", impressao); 
+    } 
 
     // Desenha a palavra
     DrawTextEx(fonte, impressao, (Vector2){coluna * 3, row * 6.75}, 100, 15, WHITE);
@@ -51,17 +66,163 @@ int jogo(char *string, Font fonte, Texture2D forca){
     // Desenha as tentativas anteriores
     DrawTextEx(fonte, &tentativas[3], (Vector2){coluna * 3.5, row * 3}, 65, 20, YELLOW);
 
+    if(botao((Rectangle){coluna * 7.75, row * 0.25, coluna * 2, row * 1.50}, 0.1, "Teclado", COR_BORDA_BOTAO, COR_BOTAO, COR_TEXTO_BOTAO, fonte) || tela == TECLADO){
+        tela = TECLADO;
+    }
+
+    if(botao((Rectangle){coluna * 0.25, row * 0.25, coluna * 2, row * 1.50}, 0.1, "Resetar", COR_BORDA_BOTAO, COR_BOTAO, COR_TEXTO_BOTAO, fonte)){
+        tela = MENU;
+        erros = 0; 
+
+        UnloadTexture(*forca);
+        *forca = LoadTexture("imagens/forca_0.png");
+
+        sprintf(tentativas, "\n -");
+        sprintf(mensagem, "");
+    }
+
     free(impressao);
 
-    if(botao((Rectangle){coluna * 7.75, row * 0.25, coluna * 2, row * 1.50}, 0.1, "Teclado", COR_BORDA_BOTAO, COR_BOTAO, COR_TEXTO_BOTAO, fonte)){
-        return TECLADO;
+    if(letra != '\0'){
+
+        if(letra_esta_string(&tentativas[3], letra)){
+
+            sprintf(mensagem, "Voce ja fez essa tentaiva antes :|");
+            cor_mensagem = YELLOW;
+
+        }else{
+            add_string(tentativas, letra);
+
+            if(letra_esta_string(string, letra)){
+
+                sprintf(mensagem, "Voce acertou :D");
+                cor_mensagem = GREEN;
+
+            }else{
+
+                erros++;
+                UnloadTexture(*forca);
+                char caminho[100];
+                sprintf(caminho, "imagens/forca_%d.png", erros);
+                *forca = LoadTexture(caminho);
+
+                sprintf(mensagem, "Voce errou :(");
+                cor_mensagem = RED;
+            }
+        }
+
+        letra = '\0';
     }
+
+    DrawTextEx(fonte, mensagem, (Vector2){centro_x_texto(mensagem, coluna * 6, 100, fonte), row * 5}, 100, 0.2, cor_mensagem);
+
+    if(tudo_achado || erros >= 6){
+        erros = 0; 
+        sprintf(tentativas, "\n -");
+        sprintf(mensagem, "");
+        tela = FIM_JOGO;
+
+        UnloadTexture(*forca);
+        *forca = LoadTexture("imagens/forca_0.png");
+    }
+
+    return tela;
+}
+
+int fim_jogo(char *palavra, Font fonte, Texture2D forca, bool acertou_tudo){
+
+    // Variáveis de referência para ajudar no possicionamento
+    float coluna = SW * 0.1;
+    float row = SH * 0.1;
+
+    char mensagem[1000] = "";
+    Color cor_mensagem;
 
     if(botao((Rectangle){coluna * 0.25, row * 0.25, coluna * 2, row * 1.50}, 0.1, "Resetar", COR_BORDA_BOTAO, COR_BOTAO, COR_TEXTO_BOTAO, fonte)){
         return MENU;
     }
 
-    return FORCA;
+    // Desenha a forca
+    DrawTextureEx(forca, (Vector2){coluna * 1.25 , row * 3}, 0.0, 0.65,  WHITE);
+
+    // Quebra palavras grandes em duas linhas
+    if((int)MeasureTextEx(fonte, palavra, 100, 15).x > coluna * 5 && letra_esta_string(palavra, ' ')){
+
+        int len = strlen(palavra);
+
+        for(int i = 0; i < len; i++){
+            if(palavra[i] == ' '){
+                palavra[i] = '\n';
+                break;
+            }
+        }
+    } 
+
+    // Desenha a palavra
+    DrawTextEx(fonte, palavra, (Vector2){coluna * 3, row * 6.75}, 100, 15, WHITE);
+
+    if(acertou_tudo){
+        sprintf(mensagem, "Parabens, voce acertou tudo ;)");
+        cor_mensagem = GREEN;
+    }else{
+        sprintf(mensagem, "Suas tentativas se esgotaram :O\nMais sorte da proxima vez");
+        cor_mensagem = RED;
+    }
+
+    DrawTextEx(fonte, mensagem, (Vector2){centro_x_texto(mensagem, coluna * 6, 100, fonte), row * 3}, 100, 0.2, cor_mensagem);
+
+    return FIM_JOGO;
+
+}
+
+char teclado(int *tela, Font fonte, char *tentativas){
+
+    // Variáveis de referência para ajudar no possicionamento
+    float coluna = SW * 0.1;
+    float row = SH * 0.1;
+    float margin = row * 0.1;
+
+    *tela = TECLADO;
+
+    if(botao((Rectangle){coluna * 0.25, row * 0.25, coluna * 2, row * 1.50}, 0.1, "Voltar", COR_BORDA_BOTAO, COR_BOTAO, COR_TEXTO_BOTAO, fonte)){
+        *tela = FORCA;
+    }
+
+    char letras_maiusculas[] = {
+    'A','B','C','D','E','F','G','H','I','J','K','L','M',
+    'N','O','P','Q','R','S','T','U','V','W','X','Y','Z'
+    };
+
+    float pos_x = coluna * 2.5;
+    float pos_y = row * 3;
+
+    for(int i = 0; i < 26; i++){
+
+        if(pos_x > coluna * 6.5){
+
+            pos_x = coluna * 2.5;
+            pos_y += row;
+
+        }
+
+        char letra_atual[] = {letras_maiusculas[i] , '\0'};
+
+        Color cor_fundo;
+        if(letra_esta_string(tentativas, letras_maiusculas[i])){
+            cor_fundo = GRAY;
+        }else{
+            cor_fundo = COR_BOTAO;
+        }
+
+        if(botao((Rectangle){pos_x + margin, pos_y + margin, coluna * 0.8, row * 0.8}, 0.1, letra_atual, COR_BORDA_BOTAO, cor_fundo, COR_TEXTO_BOTAO, fonte)){
+            *tela = FORCA;
+            return letras_maiusculas[i];
+        }
+
+        pos_x += coluna;
+    }
+
+    return '\0';
 }
 
 

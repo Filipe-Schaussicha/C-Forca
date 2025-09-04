@@ -45,15 +45,14 @@ int main(){
                 DrawRectangle(0, i, SW, SH * 0.005, RED);
             }
         }
-
-        //printf("%d\n", tela_atual);
         
         // Selecão de telas
         switch(tela_atual){
 
-            case FORCA:
-                tela_atual = jogo(palavra, fonte, forca);
+            case FORCA: case TECLADO: case FIM_JOGO:
+                tela_atual = jogo(palavra, fonte, &forca, tela_atual);
                 break;
+
             default:
                 tela_atual = menu(fonte, &palavra);
                 break;
