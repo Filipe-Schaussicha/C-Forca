@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include "raylib.h"
@@ -7,6 +8,17 @@
 telas tela_atual = MENU;
 bool mostrar_grades = false;
 
+int jogo(char *palavra, Font fonte, Texture2D forca){
+
+    // Variáveis de referência para ajudar no possicionamento
+    float coluna = SW * 0.1;
+    float row = SH * 0.1;
+
+    DrawTextureEx(forca, (Vector2){coluna * 1.25 , row * 2.5}, 0.0, 0.65,  WHITE);
+
+    return FORCA;
+}
+
 int main(){
 
     InitWindow(SW, SH, "Forca");
@@ -15,10 +27,12 @@ int main(){
 
     srand(time(NULL));
 
-    char *palavra;
+    char *palavra = NULL;
 
     // Carrega imagem de fundo
     Texture2D quadro = LoadTexture("imagens/quadro.jpg");
+
+    Texture2D forca = LoadTexture("imagens/forca_6.png");
 
     // Carrega a fonte customizada
     Font fonte = carrega_fonte("fontes/Chalk_Board.ttf", 96);
@@ -42,12 +56,17 @@ int main(){
                 DrawRectangle(0, i, SW, SH * 0.005, RED);
             }
         }
+
+        //printf("%d\n", tela_atual);
         
         // Selecão de telas
         switch(tela_atual){
 
+            case FORCA:
+                tela_atual = jogo(palavra, fonte, forca);
+                break;
             default:
-                menu(fonte, palavra);
+                tela_atual = menu(fonte, palavra);
                 break;
         }
 
@@ -56,6 +75,7 @@ int main(){
 
     UnloadFont(fonte);
     UnloadTexture(quadro);
+    UnloadTexture(forca);
     CloseWindow();
 }
 

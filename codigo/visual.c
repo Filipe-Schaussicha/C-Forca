@@ -63,8 +63,12 @@ int menu(Font fonte, char* palavra){
 
     // Chama a função para escolher a dificuldade e vai para o jogo
     if(dificuldade > 0){
+        
         palavra = escolher_palavra_aleatoria(dificuldade);
-        return FORCA;
+
+        if(palavra != NULL){
+            return FORCA;
+        }
     }
 
     return MENU;
