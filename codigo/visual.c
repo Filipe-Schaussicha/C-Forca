@@ -1,7 +1,65 @@
+#include <stdio.h>
 #include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "raylib.h"
 #include "logica.h"
 #include "visual.h"
+
+#define COR_BORDA_BOTAO BLACK
+#define COR_BOTAO   BLUE
+#define COR_TEXTO_BOTAO WHITE
+
+int jogo(char *string, Font fonte, Texture2D forca){
+
+    // Variáveis de referência para ajudar no possicionamento
+    float coluna = SW * 0.1;
+    float row = SH * 0.1;
+
+    // Desenha a forca
+    DrawTextureEx(forca, (Vector2){coluna * 1.25 , row * 3}, 0.0, 0.65,  WHITE);
+
+    int erros = 0;
+
+    static char tentativas[100] = "\n -AEIOU";
+
+    // Deixa as palavras desconhecidas como _ e mostra as achadas
+    char *impressao = palavra_impressao(string, tentativas);
+
+    if(string == NULL || impressao == NULL){
+        return MENU;
+    }
+
+    // Quebra palavras grandes em duas linhas
+    if((int)MeasureTextEx(fonte, impressao, 100, 15).x > coluna * 5 && letra_esta_string(impressao, ' ')){
+
+        int len = strlen(impressao);
+
+        for(int i = 0; i < len; i++){
+            if(impressao[i] == ' '){
+                impressao[i] = '\n';
+                break;
+            }
+        }
+    }
+
+    //printf("%s\n", impressao); 
+
+    // Desenha a palavra
+    DrawTextEx(fonte, impressao, (Vector2){coluna * 3, row * 6.75}, 100, 15, WHITE);
+
+    // Desenha as tentativas anteriores
+    DrawTextEx(fonte, &tentativas[3], (Vector2){coluna * 3.5, row * 3}, 65, 20, YELLOW);
+
+    free(impressao);
+
+    //if(botao()){
+    //    return TECLADO;
+    //}
+
+    return FORCA;
+}
+
 
 Font carrega_fonte(char *caminho, int tamanho){
 
@@ -33,7 +91,7 @@ Font carrega_fonte(char *caminho, int tamanho){
 }
 
 
-int menu(Font fonte, char* palavra){
+int menu(Font fonte, char **string){
 
     int dificuldade = 0;
 
@@ -51,22 +109,23 @@ int menu(Font fonte, char* palavra){
     DrawTextEx(fonte, "Escolha uma das dificuldades", (Vector2){centro_x_texto("Escolha uma das dificuldades", SW / 2, 96, fonte), row * 4 + margin}, 96 , 2 ,WHITE);
 
     // Botões para escolher a dificuldade
-    if(botao((Rectangle){coluna * 2 + margin, row * 6 + margin, coluna * 2 - margin * 2, row * 2 - margin * 2}, 0.1, "Facil", BLACK, BLUE, WHITE, fonte)){
+    if(botao((Rectangle){coluna * 2 + margin, row * 6 + margin, coluna * 2 - margin * 2, row * 2 - margin * 2}, 0.1, "Facil", COR_BORDA_BOTAO, COR_BOTAO, COR_TEXTO_BOTAO, fonte)){
         dificuldade = 1;
     }
-    if(botao((Rectangle){coluna * 4 + margin, row * 6 + margin, coluna * 2 - margin * 2, row * 2 - margin * 2}, 0.1, "Medio", BLACK, BLUE, WHITE, fonte)){
+    if(botao((Rectangle){coluna * 4 + margin, row * 6 + margin, coluna * 2 - margin * 2, row * 2 - margin * 2}, 0.1, "Medio", COR_BORDA_BOTAO, COR_BOTAO, COR_TEXTO_BOTAO, fonte)){
         dificuldade = 2;
     }
-    if(botao((Rectangle){coluna * 6 + margin, row * 6 + margin, coluna * 2 - margin * 2, row * 2 - margin * 2}, 0.1, "Dificil", BLACK, BLUE, WHITE, fonte)){
+    if(botao((Rectangle){coluna * 6 + margin, row * 6 + margin, coluna * 2 - margin * 2, row * 2 - margin * 2}, 0.1, "Dificil", COR_BORDA_BOTAO, COR_BOTAO, COR_TEXTO_BOTAO, fonte)){
         dificuldade = 3;
     }
 
     // Chama a função para escolher a dificuldade e vai para o jogo
     if(dificuldade > 0){
         
-        palavra = escolher_palavra_aleatoria(dificuldade);
+        *string = escolher_palavra_aleatoria(dificuldade);
 
-        if(palavra != NULL){
+        if(*string != NULL){
+            printf("%s\n", *string);
             return FORCA;
         }
     }

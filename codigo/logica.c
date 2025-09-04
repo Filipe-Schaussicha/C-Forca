@@ -1,3 +1,7 @@
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <string.h>
 #include "logica.h"
 
 // Escolhe uma palavra aleatória de um arquivo
@@ -39,7 +43,7 @@ char *escolher_palavra_aleatoria(int dificuldade){
     int qual_palavra = rand() % contador;
 
     for(int i = 0; i < qual_palavra; i++){
-        fgets(palavra_aleatoria, sizeof(palavra_aleatoria), arquivo);
+        fgets(palavra_aleatoria, 100, arquivo);
     }
 
     // Remove o \n
@@ -52,3 +56,58 @@ char *escolher_palavra_aleatoria(int dificuldade){
     return palavra_aleatoria;
 }
 
+void add_string(char *string, char c){
+
+    int tamanho = strlen(string);
+
+    string[tamanho] = c;
+    string[tamanho + 1] = '\0';
+
+}
+
+bool letra_esta_string(char *string, char letra){
+
+    int tamanho = strlen(string);
+
+    for(int i = 0; i < tamanho; i++){
+
+        if(string[i] == letra){
+            return true;
+        }
+
+    }
+
+    return false;
+}
+
+char *palavra_impressao(char *string, char *achadas){
+
+    if(string == NULL){
+        printf("Palavra Nula\n");
+        return NULL;
+    }
+
+    int len = strlen(string);
+
+    char *impressao = malloc(sizeof(char) * (len + 1));
+
+    if(impressao == NULL){
+        printf("Erro ao alocar palavra_impressao\n");
+        return NULL;
+    }
+
+    impressao[0] = '\0';
+
+    for(int i = 0; i < len; i++){
+
+        if(letra_esta_string(achadas, string[i])){
+            add_string(impressao, string[i]);
+        }else{
+            add_string(impressao, '_');
+        }
+
+    }
+
+    return impressao;
+
+}

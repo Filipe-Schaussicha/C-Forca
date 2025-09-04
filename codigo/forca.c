@@ -6,18 +6,7 @@
 
 // Variáveis globais
 telas tela_atual = MENU;
-bool mostrar_grades = false;
-
-int jogo(char *palavra, Font fonte, Texture2D forca){
-
-    // Variáveis de referência para ajudar no possicionamento
-    float coluna = SW * 0.1;
-    float row = SH * 0.1;
-
-    DrawTextureEx(forca, (Vector2){coluna * 1.25 , row * 2.5}, 0.0, 0.65,  WHITE);
-
-    return FORCA;
-}
+bool mostrar_grades = true;
 
 int main(){
 
@@ -32,7 +21,7 @@ int main(){
     // Carrega imagem de fundo
     Texture2D quadro = LoadTexture("imagens/quadro.jpg");
 
-    Texture2D forca = LoadTexture("imagens/forca_6.png");
+    Texture2D forca = LoadTexture("imagens/forca_0.png");
 
     // Carrega a fonte customizada
     Font fonte = carrega_fonte("fontes/Chalk_Board.ttf", 96);
@@ -66,7 +55,7 @@ int main(){
                 tela_atual = jogo(palavra, fonte, forca);
                 break;
             default:
-                tela_atual = menu(fonte, palavra);
+                tela_atual = menu(fonte, &palavra);
                 break;
         }
 

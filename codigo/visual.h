@@ -9,9 +9,11 @@ typedef enum telas {
 #define SW 1366
 #define SH 768
 
+int jogo(char *string, Font fonte, Texture2D forca);
+
 Font carrega_fonte(char *caminho, int tamanho);
 
-int menu(Font fonte, char* palavra);
+int menu(Font fonte, char **string);
 
 bool botao(Rectangle retangulo, float margin, char *texto, Color externo, Color interno, Color texto_cor, Font fonte);
 
